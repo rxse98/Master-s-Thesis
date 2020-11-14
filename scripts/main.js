@@ -304,7 +304,7 @@ function MapAPI() {
 
         var keydown = function(evt) {
             var charCode = (evt.which) ? evt.which : evt.keyCode;
-            if (charCode === 27 && drawing == false) { //esc key
+            if (charCode === 27 && drawing == false && animating == false) { //esc key
                 //dispatch event
                 modify.set('escKey', Math.random());         
             }
@@ -364,6 +364,9 @@ function MapAPI() {
 
             tooltipCoord = geom.getLastCoordinate();
 
+
+            geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
+            
             measureTooltipElement.innerHTML = output;
             measureTooltip.setPosition(tooltipCoord);
 
@@ -404,6 +407,7 @@ function MapAPI() {
 
             if (i >= fincoords.length) {
                 i = 0
+                loadButton.disabled = false
                 stopAnimation()
                 return
             }
@@ -414,29 +418,37 @@ function MapAPI() {
     // fire the animation
     function startAnimation() {
 
-        if (animating) {
-            stopAnimation()
-        } else {
-            animating = true
-            startButton.textContent = 'Cancel';
+        if (!fincoords ? false : fincoords.length > 1) {
+            if (animating) {
+                stopAnimation()
+            } else {
+                animating = true
+                startButton.textContent = 'Cancel';
 
-            if (source.getFeatureById(1) == undefined) {
+                if (i < fincoords.length) {
+                    loadButton.disabled = true
+                }
+    
+                map.removeInteraction(modify);
+    
                 source.removeFeature(geoMarker);
+    
+                source.addFeatures([geoMarker]);
+                geoMarker.setId(1)
+    
+                map.once('postcompose', function() {
+                    interval = setInterval(moveMarker, 500);
+                });
             }
-
-            source.addFeatures([geoMarker]);
-            geoMarker.setId(1)
-
-            map.once('postcompose', function() {
-                interval = setInterval(moveMarker, 500);
-            });
         }
     }
 
     function stopAnimation() {
         animating = false;
+        
         startButton.textContent = 'Start';
 
+        map.addInteraction(modify);
 
         map.once('postcompose', function() {
             clearInterval(interval);
