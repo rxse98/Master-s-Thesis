@@ -1,8 +1,14 @@
 import * as config_planes from '../configs/planes.js'
 import * as config_route from '../configs/route.js'
 
+// configs
 var planes = config_planes.default.data
 var route = config_route.default.data
+
+// globals
+var selector = -1
+var distance = 0
+
 
 // start
 function start() {
@@ -78,12 +84,14 @@ function info() {
     namea1.classList.add("namea1")
     namea1.href = "#"
     let nameh1 = document.createElement("h3")
+    nameh1.innerText = "None"
     nameh1.classList.add("nameh1")
 
     let specsa1 = document.createElement("a")
     specsa1.classList.add("specsa1")
     specsa1.href = "#"
     let specsp1 = document.createElement("p")
+    specsp1.id = "specsp1"
     specsp1.classList.add("specsp1")
     specsp1.href = "#"
 
@@ -97,6 +105,9 @@ function info() {
         labelbtn.id = "p" + i + "logo1"
         labelbtn.classList.add("plabelbtn")
         labelbtn.style.backgroundImage = planes[i].logo
+
+        specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
+
 
         logo1.appendChild(radiobtn)
         logo1.appendChild(labelbtn)
@@ -112,9 +123,10 @@ function info() {
 
         // on aircraft select
         document.getElementById("p" + i + "logo1").onclick = function(){
+            selector = i
             img1.src = planes[i].img
             nameh1.innerText = planes[i].name
-            specsp1.innerText = "Average speed: " + planes[i].v + " KM/H" + "\n" + "Distance: " + planes[i].s + " KM" + "\n" + "Time: " + planes[i].t + " H"
+            specsp1.innerText = "Average speed: " + planes[i].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[i].v) + " H"
         };
     }   
 }
@@ -140,7 +152,6 @@ function MapAPI() {
         }),
     });
     
-
     var fincoords;
 
     var sketch;
@@ -192,6 +203,8 @@ function MapAPI() {
         } else {
             output = Math.round(length * 100) / 100 + ' ' + 'm';
         }
+
+        distance = Math.round((length / 1000) * 100) / 100
         return output;
     };
 
@@ -241,6 +254,8 @@ function MapAPI() {
 
             drawing = true
 
+            let specsp1 = document.getElementById("specsp1")
+
             // set sketch 
             sketch = evt.feature;
             sketch.setId(0)
@@ -252,6 +267,17 @@ function MapAPI() {
             listener = sketch.getGeometry().on('change', function (evt) {
                 var geom = evt.target;
                 var output;
+
+                for (i = 0; i < planes.length; i++) {
+                    planes[i].s = distance
+                }
+
+                if (selector == -1) {
+                    specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
+
+                } else {
+                    specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
+                }
 
                 output = formatLength(geom);
                 tooltipCoord = geom.getLastCoordinate();
@@ -265,6 +291,17 @@ function MapAPI() {
 
             drawing = false
 
+            for (i = 0; i < planes.length; i++) {
+                planes[i].s = distance
+            }
+
+            if (selector == -1) {
+                specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
+
+            } else {
+                specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
+            }
+            
 
             fincoords = sketch.getGeometry().getCoordinates()
 
@@ -325,6 +362,17 @@ function MapAPI() {
                 
                 var output;
 
+                for (i = 0; i < planes.length; i++) {
+                    planes[i].s = distance
+                }
+
+                if (selector == -1) {
+                    specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
+
+                } else {
+                    specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
+                }
+
                 output = formatLength((geom));
                 tooltipCoord = geom.getLastCoordinate();
 
@@ -336,6 +384,17 @@ function MapAPI() {
         modify.on('modifyend', function() {
 
             fincoords = sketch.getGeometry().getCoordinates()
+
+            for (i = 0; i < planes.length; i++) {
+                planes[i].s = distance
+            }
+
+            if (selector == -1) {
+                specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
+
+            } else {
+                specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
+            }
 
             measureTooltipElement.className = 'ol-tooltip';
             measureTooltip.setOffset([0, -7]);
@@ -363,6 +422,17 @@ function MapAPI() {
             output = formatLength((geom));
 
             tooltipCoord = geom.getLastCoordinate();
+
+            for (i = 0; i < planes.length; i++) {
+                planes[i].s = distance
+            }
+
+            if (selector == -1) {
+                specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
+
+            } else {
+                specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
+            }
 
 
             geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
