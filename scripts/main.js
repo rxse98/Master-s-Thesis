@@ -1,11 +1,12 @@
+// configs
 import * as config_planes from '../configs/planes.js'
 import * as config_route from '../configs/route.js'
 
-// configs
+// config variables
 var planes = config_planes.default.data
 var route = config_route.default.data
 
-// globals
+// global variables
 var selector = -1
 var distance = 0
 
@@ -156,18 +157,17 @@ function mapAPI() {
 
     startButton.disabled = true
 
-    var styles = [
-        new ol.style.Style({
-            image: new ol.style.Icon({
-                anchor: [0.5, 1],
-                src: 'images/icon.png',
-            }),
-            zIndex: 5
-        })
-    ]
+    var styleMarker = new ol.style.Style({
+        image: new ol.style.Icon({
+            anchor: [0.5, 1],
+            src: 'images/icon.png',
+        }),
+        zIndex: 5
+    })
+
 
     var geoMarker = new ol.Feature();
-    geoMarker.setStyle(styles);
+    geoMarker.setStyle(styleMarker);
 
     var center = [-5483805.05,-1884105.39]
     var map = new ol.Map({
@@ -250,7 +250,7 @@ function mapAPI() {
         
         document.addEventListener('keydown', keydown, false);
         
-        //set a custom listener
+        // set a custom listener
         draw.set('escKey', '');
 
         
@@ -316,7 +316,7 @@ function mapAPI() {
             source.addFeatures([geoMarker]);
             geoMarker.setId(1);
 
-
+            iconRotation()
 
             measureTooltipElement.className = 'ol-tooltip';
             measureTooltip.setOffset([0, -7]);
@@ -352,15 +352,15 @@ function mapAPI() {
 
         var keydown = function(evt) {
             var charCode = (evt.which) ? evt.which : evt.keyCode;
-            if (charCode === 27 && drawing == false && animating == false && fincoords.length >= 2) { //esc key
-                //dispatch event
+            if (charCode === 27 && drawing == false && animating == false && fincoords.length >= 2) { // esc key
+                // dispatch event
                 modify.set('escKey', Math.random());         
             }
         };
         
         document.addEventListener('keydown', keydown, false);
         
-        //set a custom listener
+        // set a custom listener
         modify.set('escKey', '');
 
         modify.on('modifystart', function(evt) {
@@ -404,6 +404,9 @@ function mapAPI() {
             } else {
                 specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
             }
+
+            iconRotation()
+
 
             measureTooltipElement.className = 'ol-tooltip';
             measureTooltip.setOffset([0, -7]);
@@ -484,13 +487,16 @@ function mapAPI() {
 
             geoMarker.setGeometry(new ol.geom.Point(fincoords[step]));
             step++;
-
+            
             if (step >= fincoords.length) {
                 step = 0
                 loadButton.disabled = false
                 stopAnimation()
                 return
             }
+
+            iconRotation()
+
         }
     }
 
@@ -544,7 +550,6 @@ function mapAPI() {
             startButton.disabled = false
         }
 
-        
         fincoords = route
 
         if (source.getFeatureById(0)) {
@@ -566,14 +571,15 @@ function mapAPI() {
         geom.setCoordinates(fincoords);
 
         geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
-
-
+        step = 1
+        
         if (source.getFeatureById(1)) {
             source.removeFeature(source.getFeatureById(1))
         }
         source.addFeatures([geoMarker]);
         geoMarker.setId(1);
 
+        iconRotation()
 
         var output;
 
@@ -595,6 +601,22 @@ function mapAPI() {
                 document.getElementById("specsp1").innerText = "Average speed: " + planes[i].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[i].v) + " H"
             }
         }
+    }
+
+    function iconRotation() {
+
+        var x1 = fincoords[step][0]
+        var x2 = fincoords[step - 1][0]
+
+        var y1 = fincoords[step][1]
+        var y2 = fincoords[step - 1][1]
+
+        var alpharad = Math.acos((y2 - y1) / (Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))))
+
+        var angle = x1 < x2 ? Math.PI + alpharad : Math.PI - alpharad
+
+        styleMarker.image_.setRotation(angle)
+        geoMarker.setStyle(styleMarker);
     }
     
     addDrawInteraction()
