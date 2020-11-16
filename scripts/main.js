@@ -21,9 +21,6 @@ function start() {
 
     card.appendChild(startbtn)
 
-
-    // document.getElementById("startbtn").onclick = function() {
-    // }
 }
 
 function load() {
@@ -77,6 +74,7 @@ function info() {
     desc1.classList.add("pdesc1")
 
     let img1 = document.createElement("img")
+    img1.id = "img1"
     img1.src = "images/invalid.png"
     img1.classList.add("pimg1")
 
@@ -84,6 +82,7 @@ function info() {
     namea1.classList.add("namea1")
     namea1.href = "#"
     let nameh1 = document.createElement("h3")
+    nameh1.id = "nameh1"
     nameh1.innerText = "None"
     nameh1.classList.add("nameh1")
 
@@ -120,21 +119,13 @@ function info() {
         
         desc1.appendChild(specsa1)
         specsa1.appendChild(specsp1)
-
-        // on aircraft select
-        document.getElementById("p" + i + "logo1").onclick = function(){
-            selector = i
-            img1.src = planes[i].img
-            nameh1.innerText = planes[i].name
-            specsp1.innerText = "Average speed: " + planes[i].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[i].v) + " H"
-        };
     }   
 }
 
 
 // OPENLAYERS
 
-function MapAPI() {
+function mapAPI() {
 
     var raster = new ol.layer.Tile({
         source: new ol.source.OSM(),
@@ -163,6 +154,8 @@ function MapAPI() {
     var animating = false;
     var startButton = document.getElementById('startbtn');
     var loadButton = document.getElementById('loadbtn');
+
+    startButton.disabled = true
 
     var styles = [
         new ol.style.Style({
@@ -240,7 +233,19 @@ function MapAPI() {
         var keydown = function(evt) {
             var charCode = (evt.which) ? evt.which : evt.keyCode;
             if (charCode === 27 && drawing == true) {
-                draw.removeLastPoint();   
+                draw.removeLastPoint();
+                if (fincoords.length <= 1) {
+                    if (selector == -1) {
+                        specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
+    
+                    } else {
+                        specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
+                    }
+                    map.removeOverlay(measureTooltip);
+                    map.removeInteraction(draw);
+                    map.addInteraction(draw)
+                }
+
             }
         };
         
@@ -253,6 +258,9 @@ function MapAPI() {
         draw.on('drawstart', function (evt) {
 
             drawing = true
+
+            startButton.disabled = true
+
 
             let specsp1 = document.getElementById("specsp1")
 
@@ -268,7 +276,7 @@ function MapAPI() {
                 var geom = evt.target;
                 var output;
 
-                for (i = 0; i < planes.length; i++) {
+                for (let i = 0; i < planes.length; i++) {
                     planes[i].s = distance
                 }
 
@@ -281,6 +289,7 @@ function MapAPI() {
 
                 output = formatLength(geom);
                 tooltipCoord = geom.getLastCoordinate();
+                fincoords = geom.getCoordinates()
 
                 measureTooltipElement.innerHTML = output;
                 measureTooltip.setPosition(tooltipCoord);
@@ -291,14 +300,13 @@ function MapAPI() {
 
             drawing = false
 
-            for (i = 0; i < planes.length; i++) {
-                planes[i].s = distance
-            }
+            
 
             if (selector == -1) {
+                startButton.disabled = true
                 specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
-
             } else {
+                startButton.disabled = false
                 specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
             }
             
@@ -306,6 +314,10 @@ function MapAPI() {
             fincoords = sketch.getGeometry().getCoordinates()
 
             geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
+            source.addFeatures([geoMarker]);
+            geoMarker.setId(1);
+
+
 
             measureTooltipElement.className = 'ol-tooltip';
             measureTooltip.setOffset([0, -7]);
@@ -341,7 +353,7 @@ function MapAPI() {
 
         var keydown = function(evt) {
             var charCode = (evt.which) ? evt.which : evt.keyCode;
-            if (charCode === 27 && drawing == false && animating == false) { //esc key
+            if (charCode === 27 && drawing == false && animating == false && fincoords.length >= 2) { //esc key
                 //dispatch event
                 modify.set('escKey', Math.random());         
             }
@@ -362,7 +374,7 @@ function MapAPI() {
                 
                 var output;
 
-                for (i = 0; i < planes.length; i++) {
+                for (let i = 0; i < planes.length; i++) {
                     planes[i].s = distance
                 }
 
@@ -385,9 +397,7 @@ function MapAPI() {
 
             fincoords = sketch.getGeometry().getCoordinates()
 
-            for (i = 0; i < planes.length; i++) {
-                planes[i].s = distance
-            }
+            
 
             if (selector == -1) {
                 specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
@@ -405,6 +415,7 @@ function MapAPI() {
 
 
         modify.on('change:escKey', function(evt) {
+
             
             var tooltipCoord = evt.coordinate;
 
@@ -423,9 +434,7 @@ function MapAPI() {
 
             tooltipCoord = geom.getLastCoordinate();
 
-            for (i = 0; i < planes.length; i++) {
-                planes[i].s = distance
-            }
+            
 
             if (selector == -1) {
                 specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
@@ -441,7 +450,10 @@ function MapAPI() {
             measureTooltip.setPosition(tooltipCoord);
 
             if (len == 2) {
+                startButton.disabled = true
                 source.removeFeature(source.getFeatureById(0))
+                source.removeFeature(geoMarker);
+                map.removeOverlay(measureTooltip);
                 map.addInteraction(draw);
             }
         });
@@ -463,20 +475,19 @@ function MapAPI() {
     }
 
 
-    source.addFeatures([geoMarker]);
 
 
-    var i = 1, interval;
+    var step = 1, interval;
 
     var moveMarker = function() {
 
         if (animating) {
 
-            geoMarker.setGeometry(new ol.geom.Point(fincoords[i]));
-            i++;
+            geoMarker.setGeometry(new ol.geom.Point(fincoords[step]));
+            step++;
 
-            if (i >= fincoords.length) {
-                i = 0
+            if (step >= fincoords.length) {
+                step = 0
                 loadButton.disabled = false
                 stopAnimation()
                 return
@@ -495,7 +506,7 @@ function MapAPI() {
                 animating = true
                 startButton.textContent = 'Cancel';
 
-                if (i < fincoords.length) {
+                if (step < fincoords.length) {
                     loadButton.disabled = true
                 }
     
@@ -526,6 +537,10 @@ function MapAPI() {
     }
 
     function loadRoute() {
+        drawing = false
+
+        startButton.disabled = false
+
         
         fincoords = route
 
@@ -549,6 +564,14 @@ function MapAPI() {
 
         geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
 
+
+        if (source.getFeatureById(1)) {
+            source.removeFeature(source.getFeatureById(1))
+        }
+        source.addFeatures([geoMarker]);
+        geoMarker.setId(1);
+
+
         var output;
 
         output = formatLength((geom));
@@ -558,12 +581,26 @@ function MapAPI() {
         measureTooltip.setPosition(tooltipCoord);
 
     }
+
+    function selectPlane() {
+        for (let i = 0; i < planes.length; i++) {
+            document.getElementById("p" + i + "logo1").onclick = function() {
+                selector = i
+                startButton.disabled = false
+                document.getElementById("img1").src = planes[i].img
+                document.getElementById("nameh1").innerText = planes[i].name
+                document.getElementById("specsp1").innerText = "Average speed: " + planes[i].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[i].v) + " H"
+            }
+        }
+    }
     
     addDrawInteraction()
     addModifyInteraction()
     
     startButton.addEventListener('click', startAnimation, false);
     loadButton.addEventListener('click', loadRoute, false);
+
+    selectPlane()
 }
 
 
@@ -572,7 +609,7 @@ function main() {
     info()
     start()
     load()
-    MapAPI()
+    mapAPI()
 }
 
 main()
