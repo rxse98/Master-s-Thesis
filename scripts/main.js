@@ -122,7 +122,6 @@ function info() {
     }   
 }
 
-
 // OPENLAYERS
 
 function mapAPI() {
@@ -539,7 +538,11 @@ function mapAPI() {
     function loadRoute() {
         drawing = false
 
-        startButton.disabled = false
+        if (selector == -1) {
+            startButton.disabled = true
+        } else {
+            startButton.disabled = false
+        }
 
         
         fincoords = route
