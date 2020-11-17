@@ -144,6 +144,7 @@ function mapAPI() {
     });
     
     var fincoords;
+    var extcoords = [];
 
     var sketch;
     var measureTooltipElement;
@@ -154,6 +155,10 @@ function mapAPI() {
     var animating = false;
     var startButton = document.getElementById('startbtn');
     var loadButton = document.getElementById('loadbtn');
+    var specsp1 = document.getElementById("specsp1")
+
+
+    var step = 1, interval;
 
     startButton.disabled = true
 
@@ -181,7 +186,7 @@ function mapAPI() {
         ],
         view: new ol.View({
             center: center,
-            zoom: 16
+            zoom: 8
         }),
         interactions: ol.interaction.defaults({ doubleClickZoom: false })
     });
@@ -260,8 +265,8 @@ function mapAPI() {
 
             startButton.disabled = true
 
+            extcoords = []
 
-            let specsp1 = document.getElementById("specsp1")
 
             // set sketch 
             sketch = evt.feature;
@@ -299,8 +304,6 @@ function mapAPI() {
 
             drawing = false
 
-            
-
             if (selector == -1) {
                 startButton.disabled = true
                 specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
@@ -316,6 +319,7 @@ function mapAPI() {
             source.addFeatures([geoMarker]);
             geoMarker.setId(1);
 
+            step = 1
             iconRotation()
 
             measureTooltipElement.className = 'ol-tooltip';
@@ -367,6 +371,8 @@ function mapAPI() {
             sketch = source.getFeatureById(0);
             
             var tooltipCoord = evt.coordinate;
+
+            extcoords = []
             
             listener = sketch.getGeometry().on('change', function(evt) {
                 var geom = evt.target;
@@ -396,8 +402,6 @@ function mapAPI() {
 
             fincoords = sketch.getGeometry().getCoordinates()
 
-            
-
             if (selector == -1) {
                 specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
 
@@ -405,8 +409,10 @@ function mapAPI() {
                 specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
             }
 
-            iconRotation()
+            geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
 
+            step = 1
+            iconRotation()
 
             measureTooltipElement.className = 'ol-tooltip';
             measureTooltip.setOffset([0, -7]);
@@ -447,6 +453,8 @@ function mapAPI() {
 
 
             geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
+
+
             
             measureTooltipElement.innerHTML = output;
             measureTooltip.setPosition(tooltipCoord);
@@ -457,6 +465,8 @@ function mapAPI() {
                 source.removeFeature(geoMarker);
                 map.removeOverlay(measureTooltip);
                 map.addInteraction(draw);
+            } else {
+                iconRotation()
             }
         });
     }
@@ -477,19 +487,15 @@ function mapAPI() {
     }
 
 
-
-
-    var step = 1, interval;
-
     var moveMarker = function() {
 
         if (animating) {
 
-            geoMarker.setGeometry(new ol.geom.Point(fincoords[step]));
+            geoMarker.setGeometry(new ol.geom.Point(extcoords[step]));
             step++;
             
-            if (step >= fincoords.length) {
-                step = 0
+            if (step >= extcoords.length) {
+                step = 1
                 loadButton.disabled = false
                 stopAnimation()
                 return
@@ -504,16 +510,14 @@ function mapAPI() {
     // fire the animation
     function startAnimation() {
 
+        changeCoords()
+
         if (!fincoords ? false : fincoords.length > 1) {
             if (animating) {
                 stopAnimation()
             } else {
                 animating = true
                 startButton.textContent = 'Cancel';
-
-                if (step < fincoords.length) {
-                    loadButton.disabled = true
-                }
     
                 map.removeInteraction(modify);
     
@@ -521,9 +525,11 @@ function mapAPI() {
     
                 source.addFeatures([geoMarker]);
                 geoMarker.setId(1)
+
+                
     
                 map.once('postcompose', function() {
-                    interval = setInterval(moveMarker, 500);
+                    interval = setInterval(moveMarker, 0);
                 });
             }
         }
@@ -533,6 +539,7 @@ function mapAPI() {
         animating = false;
         
         startButton.textContent = 'Start';
+        
 
         map.addInteraction(modify);
 
@@ -544,11 +551,7 @@ function mapAPI() {
     function loadRoute() {
         drawing = false
 
-        if (selector == -1) {
-            startButton.disabled = true
-        } else {
-            startButton.disabled = false
-        }
+
 
         fincoords = route
 
@@ -571,7 +574,6 @@ function mapAPI() {
         geom.setCoordinates(fincoords);
 
         geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
-        step = 1
         
         if (source.getFeatureById(1)) {
             source.removeFeature(source.getFeatureById(1))
@@ -579,6 +581,8 @@ function mapAPI() {
         source.addFeatures([geoMarker]);
         geoMarker.setId(1);
 
+        stopAnimation()
+        step = 1
         iconRotation()
 
         var output;
@@ -589,13 +593,29 @@ function mapAPI() {
         measureTooltipElement.innerHTML = output;
         measureTooltip.setPosition(tooltipCoord);
 
+        if (selector == -1) {
+            startButton.disabled = true
+            specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
+        } else {
+            startButton.disabled = false
+            specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
+        }
+
     }
 
     function selectPlane() {
         for (let i = 0; i < planes.length; i++) {
             document.getElementById("p" + i + "logo1").onclick = function() {
+                if (!fincoords ? false : fincoords.length > 1) {
+                    stopAnimation()
+                    geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
+                    step = 1
+                    iconRotation()
+                } else {
+                    startButton.disabled = true
+                }
+
                 selector = i
-                startButton.disabled = false
                 document.getElementById("img1").src = planes[i].img
                 document.getElementById("nameh1").innerText = planes[i].name
                 document.getElementById("specsp1").innerText = "Average speed: " + planes[i].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[i].v) + " H"
@@ -605,12 +625,20 @@ function mapAPI() {
 
     function iconRotation() {
 
-        var x1 = fincoords[step][0]
-        var x2 = fincoords[step - 1][0]
+        if (extcoords.length) {
+            var x1 = extcoords[step][0]
+            var x2 = extcoords[step - 1][0]
+    
+            var y1 = extcoords[step][1]
+            var y2 = extcoords[step - 1][1]
+        } else {
+            var x1 = fincoords[step][0]
+            var x2 = fincoords[step - 1][0]
 
-        var y1 = fincoords[step][1]
-        var y2 = fincoords[step - 1][1]
-
+            var y1 = fincoords[step][1]
+            var y2 = fincoords[step - 1][1]
+        }
+        
         var alpharad = Math.acos((y2 - y1) / (Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))))
 
         var angle = x1 < x2 ? Math.PI + alpharad : Math.PI - alpharad
@@ -618,7 +646,39 @@ function mapAPI() {
         styleMarker.image_.setRotation(angle)
         geoMarker.setStyle(styleMarker);
     }
-    
+
+    function changeCoords() {
+
+        if (drawing == false && animating == false) {
+            extcoords = []
+            
+            var delta = 1
+            for (let i = 0; i < fincoords.length - 1; i++) {
+
+                extcoords.push(fincoords[i])
+
+                let x1 = fincoords[i][0]
+                let x2 = fincoords[i + 1][0]
+
+                let y1 = fincoords[i][1]
+                let y2 = fincoords[i + 1][1]
+
+                let len = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+                for (let j = delta; j < len - delta; j += delta) {
+                    let lambda = j / (len - j)
+                    let x = (x1 + lambda * x2 )/ (1 + lambda)
+                    let y = (y1 + lambda * y2 )/ (1 + lambda)
+
+
+                    extcoords.push([x, y])
+                }
+            }
+            extcoords.push(fincoords[fincoords.length - 1])
+
+        }
+
+    }
+
     addDrawInteraction()
     addModifyInteraction()
     
@@ -626,6 +686,7 @@ function mapAPI() {
     loadButton.addEventListener('click', loadRoute, false);
 
     selectPlane()
+    // changeCoords()
 }
 
 
