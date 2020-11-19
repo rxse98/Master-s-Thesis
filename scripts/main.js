@@ -106,7 +106,7 @@ function info() {
         labelbtn.classList.add("plabelbtn")
         labelbtn.style.backgroundImage = planes[i].logo
 
-        specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
+        specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H" + "\n" + "Fuel: " + "?" + " L" +  "\n" + "Fuel Consumption: " + "?" + " L/H"
 
 
         logo1.appendChild(radiobtn)
@@ -239,12 +239,7 @@ function mapAPI() {
             if (charCode === 27 && drawing == true) {
                 draw.removeLastPoint();
                 if (fincoords.length <= 1) {
-                    if (selector == -1) {
-                        specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
-    
-                    } else {
-                        specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
-                    }
+                    fuelRestrict()
                     map.removeOverlay(measureTooltip);
                     map.removeInteraction(draw);
                     map.addInteraction(draw)
@@ -285,10 +280,9 @@ function mapAPI() {
                 }
 
                 if (selector == -1) {
-                    specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
-
+                    specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H" + "\n" + "Fuel: " + "?" + " L" +  "\n" + "Fuel Consumption: " + "?" + " L/H"
                 } else {
-                    specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
+                    specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H" + "\n" + "Fuel: " + planes[selector].fuel + " L" +  "\n" + "Fuel Consumption: " + planes[selector].fuelperhour + " L/H"
                 }
 
                 output = formatLength(geom);
@@ -304,15 +298,8 @@ function mapAPI() {
 
             drawing = false
 
-            if (selector == -1) {
-                startButton.disabled = true
-                specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
-            } else {
-                startButton.disabled = false
-                specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
-            }
+            fuelRestrict()
             
-
             fincoords = sketch.getGeometry().getCoordinates()
 
             geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
@@ -383,12 +370,7 @@ function mapAPI() {
                     planes[i].s = distance
                 }
 
-                if (selector == -1) {
-                    specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
-
-                } else {
-                    specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
-                }
+                fuelRestrict()
 
                 output = formatLength((geom));
                 tooltipCoord = geom.getLastCoordinate();
@@ -402,12 +384,7 @@ function mapAPI() {
 
             fincoords = sketch.getGeometry().getCoordinates()
 
-            if (selector == -1) {
-                specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
-
-            } else {
-                specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
-            }
+            fuelRestrict()
 
             geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
 
@@ -444,12 +421,7 @@ function mapAPI() {
 
             
 
-            if (selector == -1) {
-                specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
-
-            } else {
-                specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
-            }
+            fuelRestrict()
 
 
             geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
@@ -525,8 +497,6 @@ function mapAPI() {
     
                 source.addFeatures([geoMarker]);
                 geoMarker.setId(1)
-
-                
     
                 map.once('postcompose', function() {
                     interval = setInterval(moveMarker, 0);
@@ -593,13 +563,7 @@ function mapAPI() {
         measureTooltipElement.innerHTML = output;
         measureTooltip.setPosition(tooltipCoord);
 
-        if (selector == -1) {
-            startButton.disabled = true
-            specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H"
-        } else {
-            startButton.disabled = false
-            specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H"
-        }
+        fuelRestrict()
 
     }
 
@@ -616,9 +580,15 @@ function mapAPI() {
                 }
 
                 selector = i
+                let maxdistance = (planes[selector].fuel * planes[selector].v) / planes[selector].fuelperhour
+                if (maxdistance < distance) {
+                    startButton.disabled = true
+                } else {
+                    startButton.disabled = false                
+                }
                 document.getElementById("img1").src = planes[i].img
                 document.getElementById("nameh1").innerText = planes[i].name
-                document.getElementById("specsp1").innerText = "Average speed: " + planes[i].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[i].v) + " H"
+                specsp1.innerText = "Average speed: " + planes[i].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[i].v) + " H" + "\n" + "Fuel: " + planes[selector].fuel + " L" +  "\n" + "Fuel Consumption: " + planes[selector].fuelperhour + " L/H"
             }
         }
     }
@@ -666,17 +636,31 @@ function mapAPI() {
                 let len = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
                 for (let j = delta; j < len - delta; j += delta) {
                     let lambda = j / (len - j)
-                    let x = (x1 + lambda * x2 )/ (1 + lambda)
-                    let y = (y1 + lambda * y2 )/ (1 + lambda)
+                    let x = (x1 + lambda * x2 ) / (1 + lambda)
+                    let y = (y1 + lambda * y2 ) / (1 + lambda)
 
 
                     extcoords.push([x, y])
                 }
             }
             extcoords.push(fincoords[fincoords.length - 1])
-
         }
+    }
 
+    function fuelRestrict() {       
+            
+        if (selector == -1) {
+            startButton.disabled = true
+            specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H" + "\n" + "Fuel: " + "?" + " L" +  "\n" + "Fuel Consumption: " + "?" + " L/H"
+        } else {
+            let maxdistance = (planes[selector].fuel * planes[selector].v) / planes[selector].fuelperhour
+            if (maxdistance < distance) {
+                startButton.disabled = true
+            } else {
+                startButton.disabled = false                
+            }
+            specsp1.innerText = "Average speed: " + planes[selector].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[selector].v) + " H" + "\n" + "Fuel: " + planes[selector].fuel + " L" +  "\n" + "Fuel Consumption: " + planes[selector].fuelperhour + " L/H"
+        }
     }
 
     addDrawInteraction()
