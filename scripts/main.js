@@ -204,7 +204,7 @@ function mapAPI() {
     var geoMarker = new ol.Feature();
     geoMarker.setStyle(styleMarker);
 
-    var center = [-5483805.05,-1884105.39]
+    var center = [3593151.825630, 6339992.874086]
     var map = new ol.Map({
         controls: ol.control.defaults().extend([
             new ol.control.ScaleLine()
@@ -216,7 +216,7 @@ function mapAPI() {
         ],
         view: new ol.View({
             center: center,
-            zoom: 8
+            zoom: 6
         }),
         interactions: ol.interaction.defaults({ doubleClickZoom: false })
     });
