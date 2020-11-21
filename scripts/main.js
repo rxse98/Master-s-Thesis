@@ -71,6 +71,9 @@ function information() {
     let desc1 = document.createElement("div")
     desc1.classList.add("pdesc1")
 
+    let imga1 = document.createElement("a")
+    imga1.href = "#"
+
     let img1 = document.createElement("img")
     img1.id = "img1"
     img1.src = "images/invalid.png"
@@ -109,7 +112,8 @@ function information() {
         logo1.appendChild(labelbtn)
 
         info.appendChild(desc1)
-        desc1.appendChild(img1)
+        desc1.appendChild(imga1)
+        imga1.appendChild(img1)
 
         desc1.appendChild(namea1)
         namea1.appendChild(nameh1)
@@ -129,7 +133,7 @@ function speed() {
     sliderinp.id = "sliderinp"
     sliderinp.setAttribute("type", "range")
     sliderinp.setAttribute("min", "1")
-    sliderinp.setAttribute("max", "25000")
+    sliderinp.setAttribute("max", "1000")
     sliderinp.classList.add("sliderinp")
     sliderinp.value = "1"
 
@@ -646,7 +650,7 @@ function mapAPI() {
         if (drawing == false && animating == false) {
             extcoords = []
             
-            var delta = 1 * sliderinp.value
+            var delta = (0.001 * planes[selector].v) * sliderinp.value
             for (let i = 0; i < fincoords.length - 1; i++) {
 
                 extcoords.push(fincoords[i])
