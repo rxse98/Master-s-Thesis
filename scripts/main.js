@@ -10,7 +10,6 @@ var route = config_route.default.data
 var selector = -1
 var distance = 0
 
-
 // start
 function start() {
 
@@ -21,7 +20,6 @@ function start() {
     startbtn.innerText = "Start"
 
     card.appendChild(startbtn)
-
 }
 
 function load() {
@@ -36,7 +34,7 @@ function load() {
 
 
 // create info
-function info() {
+function information() {
 
     // selector
     let card = document.getElementById("card")
@@ -54,11 +52,10 @@ function info() {
     txta1.classList.add("txta1")
     let txtp1 = document.createElement('p')
     txtp1.classList.add("txtp1")
-    txtp1.innerText = "Choose an aircraft:"
+    txtp1.innerText = "Select an aircraft:"
     
     let logo1 = document.createElement("plogo1")
     logo1.classList.add("plogo1")
-
 
     card.appendChild(info)
 
@@ -108,7 +105,6 @@ function info() {
 
         specsp1.innerText = "Average speed: " + "?" + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + "?" + " H" + "\n" + "Fuel: " + "?" + " L" +  "\n" + "Fuel Consumption: " + "?" + " L/H"
 
-
         logo1.appendChild(radiobtn)
         logo1.appendChild(labelbtn)
 
@@ -121,6 +117,37 @@ function info() {
         desc1.appendChild(specsa1)
         specsa1.appendChild(specsp1)
     }   
+}
+
+// FIX
+function speed() {
+    let card = document.getElementById("card")
+    let speed = document.createElement("div")
+
+    // ADD SLIDER (FIX!!!)
+    let sliderinp = document.createElement("INPUT")
+    sliderinp.id = "sliderinp"
+    sliderinp.setAttribute("type", "range")
+    sliderinp.setAttribute("min", "1")
+    sliderinp.setAttribute("max", "25000")
+    sliderinp.classList.add("sliderinp")
+    sliderinp.value = "1"
+
+    let slidera = document.createElement("a")
+    slidera.classList.add("slidera")
+    slidera.href = "#"
+
+    let sliderl = document.createElement("label")
+    sliderl.classList.add("sliderl")
+    sliderl.innerHTML = "Speed";
+    sliderl.htmlFor = "sliderinp"
+
+    card.appendChild(speed)
+
+    speed.appendChild(sliderinp)
+
+    speed.appendChild(slidera)
+    slidera.appendChild(sliderl)
 }
 
 // OPENLAYERS
@@ -155,7 +182,6 @@ function mapAPI() {
     var animating = false;
     var startButton = document.getElementById('startbtn');
     var loadButton = document.getElementById('loadbtn');
-    var specsp1 = document.getElementById("specsp1")
 
 
     var step = 1, interval;
@@ -419,15 +445,10 @@ function mapAPI() {
 
             tooltipCoord = geom.getLastCoordinate();
 
-            
-
             fuelRestrict()
-
 
             geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
 
-
-            
             measureTooltipElement.innerHTML = output;
             measureTooltip.setPosition(tooltipCoord);
 
@@ -469,12 +490,12 @@ function mapAPI() {
             if (step >= extcoords.length) {
                 step = 1
                 loadButton.disabled = false
+                sliderinp.disabled = false
                 stopAnimation()
                 return
             }
 
             iconRotation()
-
         }
     }
 
@@ -490,6 +511,8 @@ function mapAPI() {
             } else {
                 animating = true
                 startButton.textContent = 'Cancel';
+                sliderinp.disabled = true
+
     
                 map.removeInteraction(modify);
     
@@ -508,8 +531,7 @@ function mapAPI() {
     function stopAnimation() {
         animating = false;
         
-        startButton.textContent = 'Start';
-        
+        startButton.textContent = 'Start';        
 
         map.addInteraction(modify);
 
@@ -520,8 +542,6 @@ function mapAPI() {
 
     function loadRoute() {
         drawing = false
-
-
 
         fincoords = route
 
@@ -555,6 +575,8 @@ function mapAPI() {
         step = 1
         iconRotation()
 
+        sliderinp.disabled = false
+
         var output;
 
         output = formatLength((geom));
@@ -583,9 +605,11 @@ function mapAPI() {
                 let maxdistance = (planes[selector].fuel * planes[selector].v) / planes[selector].fuelperhour
                 if (maxdistance < distance) {
                     startButton.disabled = true
-                } else {
-                    startButton.disabled = false                
+                } else if (maxdistance > distance && fincoords != undefined && fincoords.length >= 2) {
+                    startButton.disabled = false
+                    sliderinp.disabled = false
                 }
+
                 document.getElementById("img1").src = planes[i].img
                 document.getElementById("nameh1").innerText = planes[i].name
                 specsp1.innerText = "Average speed: " + planes[i].v + " KM/H" + "\n" + "Distance: " + distance + " KM" + "\n" + "Time: " + Math.round(distance / planes[i].v) + " H" + "\n" + "Fuel: " + planes[selector].fuel + " L" +  "\n" + "Fuel Consumption: " + planes[selector].fuelperhour + " L/H"
@@ -622,7 +646,7 @@ function mapAPI() {
         if (drawing == false && animating == false) {
             extcoords = []
             
-            var delta = 1
+            var delta = 1 * sliderinp.value
             for (let i = 0; i < fincoords.length - 1; i++) {
 
                 extcoords.push(fincoords[i])
@@ -638,8 +662,6 @@ function mapAPI() {
                     let lambda = j / (len - j)
                     let x = (x1 + lambda * x2 ) / (1 + lambda)
                     let y = (y1 + lambda * y2 ) / (1 + lambda)
-
-
                     extcoords.push([x, y])
                 }
             }
@@ -670,13 +692,13 @@ function mapAPI() {
     loadButton.addEventListener('click', loadRoute, false);
 
     selectPlane()
-    // changeCoords()
 }
 
 
 // MAIN
 function main() {
-    info()
+    information()
+    speed()
     start()
     load()
     mapAPI()
