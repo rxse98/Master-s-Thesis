@@ -123,12 +123,11 @@ function information() {
     }   
 }
 
-// FIX
+
 function speed() {
     let card = document.getElementById("card")
     let speed = document.createElement("div")
 
-    // ADD SLIDER (FIX!!!)
     let sliderinp = document.createElement("INPUT")
     sliderinp.id = "sliderinp"
     sliderinp.setAttribute("type", "range")
@@ -186,6 +185,7 @@ function mapAPI() {
     var animating = false;
     var startButton = document.getElementById('startbtn');
     var loadButton = document.getElementById('loadbtn');
+    var sliderInput = document.getElementById('sliderinp');
 
 
     var step = 1, interval;
@@ -452,6 +452,7 @@ function mapAPI() {
             fuelRestrict()
 
             geoMarker.setGeometry(new ol.geom.Point(fincoords[0]));
+            step = 1
 
             measureTooltipElement.innerHTML = output;
             measureTooltip.setPosition(tooltipCoord);
@@ -494,7 +495,7 @@ function mapAPI() {
             if (step >= extcoords.length) {
                 step = 1
                 loadButton.disabled = false
-                sliderinp.disabled = false
+                sliderInput.disabled = false
                 stopAnimation()
                 return
             }
@@ -515,7 +516,7 @@ function mapAPI() {
             } else {
                 animating = true
                 startButton.textContent = 'Cancel';
-                sliderinp.disabled = true
+                sliderInput.disabled = true
 
     
                 map.removeInteraction(modify);
@@ -579,7 +580,7 @@ function mapAPI() {
         step = 1
         iconRotation()
 
-        sliderinp.disabled = false
+        sliderInput.disabled = false
 
         var output;
 
@@ -611,7 +612,7 @@ function mapAPI() {
                     startButton.disabled = true
                 } else if (maxdistance > distance && fincoords != undefined && fincoords.length >= 2) {
                     startButton.disabled = false
-                    sliderinp.disabled = false
+                    sliderInput.disabled = false
                 }
 
                 document.getElementById("img1").src = planes[i].img
